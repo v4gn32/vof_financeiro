@@ -5,6 +5,13 @@ import { useAuth } from '../context/AuthContext';
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  
+  // Estado local para os campos do formulário
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: ''
+  });
 
   const tabs = [
     { id: 'profile', icon: User, label: 'Perfil' },
@@ -62,7 +69,8 @@ const Settings: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
                   <input
                     type="text"
-                    value={user?.name || ''}
+                    value={profileData.name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -71,7 +79,8 @@ const Settings: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
                   <input
                     type="email"
-                    value={user?.email || ''}
+                    value={profileData.email}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -80,6 +89,8 @@ const Settings: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
                   <input
                     type="tel"
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="(11) 99999-9999"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />

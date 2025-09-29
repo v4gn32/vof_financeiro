@@ -45,10 +45,10 @@ export const FinancialProvider: React.FC<FinancialProviderProps> = ({ children }
     creditCardDebt: 0,
   });
 
-  // Load mock data when user logs in
+  // Load data from backend when user logs in
   useEffect(() => {
     if (user) {
-      loadMockData();
+      loadUserData();
     }
   }, [user]);
 
@@ -57,73 +57,29 @@ export const FinancialProvider: React.FC<FinancialProviderProps> = ({ children }
     calculateDashboardStats();
   }, [transactions, investments]);
 
-  const loadMockData = () => {
-    const mockTransactions: Transaction[] = [
-      {
-        id: '1',
-        userId: user!.id,
-        type: 'income',
-        amount: 5000,
-        category: 'Salário',
-        description: 'Salário mensal',
-        date: new Date(2025, 0, 5),
-        paymentMethod: 'Transferência',
-        createdAt: new Date(),
-      },
-      {
-        id: '2',
-        userId: user!.id,
-        type: 'expense',
-        amount: 1200,
-        category: 'Moradia',
-        description: 'Aluguel',
-        date: new Date(2025, 0, 10),
-        paymentMethod: 'Débito',
-        createdAt: new Date(),
-      },
-      {
-        id: '3',
-        userId: user!.id,
-        type: 'expense',
-        amount: 350,
-        category: 'Alimentação',
-        description: 'Supermercado',
-        date: new Date(2025, 0, 15),
-        paymentMethod: 'Cartão de Crédito',
-        createdAt: new Date(),
-      },
-    ];
-
-    const mockCreditCards: CreditCard[] = [
-      {
-        id: '1',
-        userId: user!.id,
-        name: 'Nubank',
-        lastFourDigits: '1234',
-        closingDay: 15,
-        dueDay: 10,
-        limit: 5000,
-        isActive: true,
-        createdAt: new Date(),
-      },
-    ];
-
-    const mockInvestments: Investment[] = [
-      {
-        id: '1',
-        userId: user!.id,
-        type: 'Tesouro Direto',
-        description: 'Tesouro Selic 2030',
-        amount: 1000,
-        date: new Date(2025, 0, 1),
-        transactionType: 'deposit',
-        createdAt: new Date(),
-      },
-    ];
-
-    setTransactions(mockTransactions);
-    setCreditCards(mockCreditCards);
-    setInvestments(mockInvestments);
+  const loadUserData = async () => {
+    try {
+      // TODO: Implementar chamadas para o backend
+      // const [transactionsRes, cardsRes, investmentsRes, notesRes] = await Promise.all([
+      //   fetch(`/api/transactions?userId=${user!.id}`),
+      //   fetch(`/api/credit-cards?userId=${user!.id}`),
+      //   fetch(`/api/investments?userId=${user!.id}`),
+      //   fetch(`/api/notes?userId=${user!.id}`)
+      // ]);
+      
+      // setTransactions(await transactionsRes.json());
+      // setCreditCards(await cardsRes.json());
+      // setInvestments(await investmentsRes.json());
+      // setNotes(await notesRes.json());
+      
+      // Por enquanto, inicializar com arrays vazios
+      setTransactions([]);
+      setCreditCards([]);
+      setInvestments([]);
+      setNotes([]);
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+    }
   };
 
   const calculateDashboardStats = () => {
