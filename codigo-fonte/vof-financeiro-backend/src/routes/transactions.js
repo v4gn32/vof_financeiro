@@ -42,49 +42,45 @@ router.get('/', [
       endDate
     } = req.query;
 
-    const offset = (page - 1) * limit;
-    let whereConditions = ['user_id = ?'];
-    let queryParams = [req.user.id];
+    const skip = (page - 1) * limit;
+    
+    // Construir filtros para Prisma
+    const where = {
+      userId: req.user.id
+    };
 
-    // Filtros opcionais
     if (type) {
-      whereConditions.push('type = ?');
-      queryParams.push(type);
+      where.type = type;
     }
 
     if (category) {
-      whereConditions.push('category = ?');
-      queryParams.push(category);
+      where.category = category;
     }
 
-    if (startDate) {
-      whereConditions.push('date >= ?');
-      queryParams.push(startDate);
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) {
+        where.date.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.date.lte = new Date(endDate);
+      }
     }
 
-    if (endDate) {
-      whereConditions.push('date <= ?');
-      queryParams.push(endDate);
-    }
+    // Buscar transações com Prisma
+    const [transactions, total] = await Promise.all([
+      prisma.transaction.findMany({
+        where,
+        orderBy: [
+          { date: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        take: parseInt(limit),
+        skip: skip
+      }),
+      prisma.transaction.count({ where })
+    ]);
 
-    const whereClause = whereConditions.join(' AND ');
-
-    // Buscar transações
-    const transactions = await executeQuery(
-      `SELECT * FROM transactions 
-       WHERE ${whereClause} 
-       ORDER BY date DESC, created_at DESC 
-       LIMIT ? OFFSET ?`,
-      [...queryParams, parseInt(limit), offset]
-    );
-
-    // Contar total de transações
-    const totalResult = await executeQuery(
-      `SELECT COUNT(*) as total FROM transactions WHERE ${whereClause}`,
-      queryParams
-    );
-
-    const total = totalResult[0].total;
     const totalPages = Math.ceil(total / limit);
 
     res.json({
@@ -109,16 +105,18 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const transactions = await executeQuery(
-      'SELECT * FROM transactions WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const transaction = await prisma.transaction.findFirst({
+      where: {
+        id: id,
+        userId: req.user.id
+      }
+    });
 
-    if (transactions.length === 0) {
+    if (!transaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
 
-    res.json(transactions[0]);
+    res.json(transaction);
   } catch (error) {
     console.error('Erro ao buscar transação:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -143,21 +141,22 @@ router.post('/', transactionValidation, async (req, res) => {
       receipt
     } = req.body;
 
-    const result = await executeQuery(
-      `INSERT INTO transactions (user_id, type, amount, category, description, date, payment_method, receipt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, type, amount, category, description, date, paymentMethod, receipt]
-    );
-
-    // Buscar transação criada
-    const newTransactions = await executeQuery(
-      'SELECT * FROM transactions WHERE id = ?',
-      [result.insertId]
-    );
+    const transaction = await prisma.transaction.create({
+      data: {
+        userId: req.user.id,
+        type,
+        amount: parseFloat(amount),
+        category,
+        description,
+        date: new Date(date),
+        paymentMethod,
+        receipt
+      }
+    });
 
     res.status(201).json({
       message: 'Transação criada com sucesso',
-      transaction: newTransactions[0]
+      transaction
     });
   } catch (error) {
     console.error('Erro ao criar transação:', error);
@@ -185,33 +184,34 @@ router.put('/:id', transactionValidation, async (req, res) => {
     } = req.body;
 
     // Verificar se a transação existe e pertence ao usuário
-    const existingTransactions = await executeQuery(
-      'SELECT id FROM transactions WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const existingTransaction = await prisma.transaction.findFirst({
+      where: {
+        id: id,
+        userId: req.user.id
+      }
+    });
 
-    if (existingTransactions.length === 0) {
+    if (!existingTransaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
 
     // Atualizar transação
-    await executeQuery(
-      `UPDATE transactions 
-       SET type = ?, amount = ?, category = ?, description = ?, date = ?, 
-           payment_method = ?, receipt = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [type, amount, category, description, date, paymentMethod, receipt, id]
-    );
-
-    // Buscar transação atualizada
-    const updatedTransactions = await executeQuery(
-      'SELECT * FROM transactions WHERE id = ?',
-      [id]
-    );
+    const transaction = await prisma.transaction.update({
+      where: { id: id },
+      data: {
+        type,
+        amount: parseFloat(amount),
+        category,
+        description,
+        date: new Date(date),
+        paymentMethod,
+        receipt
+      }
+    });
 
     res.json({
       message: 'Transação atualizada com sucesso',
-      transaction: updatedTransactions[0]
+      transaction
     });
   } catch (error) {
     console.error('Erro ao atualizar transação:', error);
@@ -225,17 +225,21 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 
     // Verificar se a transação existe e pertence ao usuário
-    const existingTransactions = await executeQuery(
-      'SELECT id FROM transactions WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const existingTransaction = await prisma.transaction.findFirst({
+      where: {
+        id: id,
+        userId: req.user.id
+      }
+    });
 
-    if (existingTransactions.length === 0) {
+    if (!existingTransaction) {
       return res.status(404).json({ error: 'Transação não encontrada' });
     }
 
     // Deletar transação
-    await executeQuery('DELETE FROM transactions WHERE id = ?', [id]);
+    await prisma.transaction.delete({
+      where: { id: id }
+    });
 
     res.json({ message: 'Transação deletada com sucesso' });
   } catch (error) {
@@ -249,51 +253,80 @@ router.get('/stats/summary', async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     
-    let whereConditions = ['user_id = ?'];
-    let queryParams = [req.user.id];
+    // Construir filtros para Prisma
+    const where = {
+      userId: req.user.id
+    };
 
-    if (startDate) {
-      whereConditions.push('date >= ?');
-      queryParams.push(startDate);
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) {
+        where.date.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.date.lte = new Date(endDate);
+      }
     }
 
-    if (endDate) {
-      whereConditions.push('date <= ?');
-      queryParams.push(endDate);
+    // Buscar estatísticas por tipo
+    const [incomeStats, expenseStats] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: { ...where, type: 'income' },
+        _sum: { amount: true },
+        _count: true,
+        _avg: { amount: true }
+      }),
+      prisma.transaction.aggregate({
+        where: { ...where, type: 'expense' },
+        _sum: { amount: true },
+        _count: true,
+        _avg: { amount: true }
+      })
+    ]);
+
+    // Buscar estatísticas por categoria
+    const categoryStats = await prisma.transaction.groupBy({
+      by: ['category', 'type'],
+      where,
+      _sum: { amount: true },
+      _count: true,
+      orderBy: {
+        _sum: {
+          amount: 'desc'
+        }
+      }
+    });
+
+    // Formatar dados de resumo
+    const summary = [];
+    if (incomeStats._count > 0) {
+      summary.push({
+        type: 'income',
+        total: incomeStats._sum.amount || 0,
+        count: incomeStats._count,
+        average: incomeStats._avg.amount || 0
+      });
+    }
+    if (expenseStats._count > 0) {
+      summary.push({
+        type: 'expense',
+        total: expenseStats._sum.amount || 0,
+        count: expenseStats._count,
+        average: expenseStats._avg.amount || 0
+      });
     }
 
-    const whereClause = whereConditions.join(' AND ');
-
-    // Buscar estatísticas
-    const stats = await executeQuery(
-      `SELECT 
-         type,
-         SUM(amount) as total,
-         COUNT(*) as count,
-         AVG(amount) as average
-       FROM transactions 
-       WHERE ${whereClause}
-       GROUP BY type`,
-      queryParams
-    );
-
-    // Buscar por categoria
-    const categoryStats = await executeQuery(
-      `SELECT 
-         category,
-         type,
-         SUM(amount) as total,
-         COUNT(*) as count
-       FROM transactions 
-       WHERE ${whereClause}
-       GROUP BY category, type
-       ORDER BY total DESC`,
-      queryParams
-    );
+    // Formatar dados por categoria
+    const byCategory = categoryStats.map(stat => ({
+      category: stat.category,
+      type: stat.type,
+      total: stat._sum.amount || 0,
+      count: stat._count
+    }));
 
     res.json({
-      summary: stats,
-      byCategory: categoryStats
+      summary,
+      byCategory
     });
   } catch (error) {
     console.error('Erro ao buscar estatísticas:', error);
