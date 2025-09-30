@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuários
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(255)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         Role     @default(USER)
+  avatar       String?  @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  transactions        Transaction[]
+  creditCards         CreditCard[]
+  investments         Investment[]
+  notes               Note[]
+
+  @@map("users")
+}
+
+// Enum para roles
+enum Role {
+  USER  @map("user")
+  ADMIN @map("admin")
+}
+
+// Modelo de transações
+model Transaction {
+  id            String          @id @default(uuid()) @db.Uuid
+  userId        String          @map("user_id") @db.Uuid
+  type          TransactionType
+  amount        Decimal         @db.Decimal(15, 2)
+  category      String          @db.VarChar(100)
+  description   String?         @db.Text
+  date          DateTime        @db.Date
+  paymentMethod String?         @map("payment_method") @db.VarChar(100)
+  receipt       String?         @db.VarChar(500)
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([type])
+  @@index([category])
+  @@map("transactions")
+}
+
+// Enum para tipos de transação
+enum TransactionType {
+  INCOME  @map("income")
+  EXPENSE @map("expense")
+}
+
+// Modelo de cartões de crédito
+model CreditCard {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  name            String   @db.VarChar(100)
+  lastFourDigits  String   @map("last_four_digits") @db.VarChar(4)
+  closingDay      Int      @map("closing_day")
+  dueDay          Int      @map("due_day")
+  cardLimit       Decimal  @default(0) @map("card_limit") @db.Decimal(15, 2)
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices CreditCardInvoice[]
+
+  @@index([userId, isActive])
+  @@map("credit_cards")
+}
+
+// Modelo de faturas do cartão de crédito
+model CreditCardInvoice {
+  id          String        @id @default(uuid()) @db.Uuid
+  cardId      String        @map("card_id") @db.Uuid
+  month       Int
+  year        Int
+  totalAmount Decimal       @default(0) @map("total_amount") @db.Decimal(15, 2)
+  dueDate     DateTime      @map("due_date") @db.Date
+  status      InvoiceStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  card CreditCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, month, year])
+  @@index([dueDate])
+  @@index([status])
+  @@map("credit_card_invoices")
+}
+
+// Enum para status da fatura
+enum InvoiceStatus {
+  PENDING @map("pending")
+  PAID    @map("paid")
+  OVERDUE @map("overdue")
+}
+
+// Modelo de investimentos
+model Investment {
+  id              String              @id @default(uuid()) @db.Uuid
+  userId          String              @map("user_id") @db.Uuid
+  type            String              @db.VarChar(100)
+  description     String?             @db.Text
+  amount          Decimal             @db.Decimal(15, 2)
+  date            DateTime            @db.Date
+  transactionType InvestmentType      @map("transaction_type")
+  notes           String?             @db.Text
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([type])
+  @@index([transactionType])
+  @@map("investments")
+}
+
+// Enum para tipos de investimento
+enum InvestmentType {
+  DEPOSIT    @map("deposit")
+  WITHDRAWAL @map("withdrawal")
+}
+
+// Modelo de anotações
+model Note {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String   @db.VarChar(255)
+  content   String?  @db.Text
+  category  String?  @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, category])
+  @@index([title])
+  @@map("notes")
+}

@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
-import { executeQuery } from '../config/database.js';
+import prisma from '../config/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -30,12 +30,11 @@ router.post('/register', registerValidation, async (req, res) => {
     const { name, email, password } = req.body;
 
     // Verificar se email já existe
-    const existingUsers = await executeQuery(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    );
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
 
-    if (existingUsers.length > 0) {
+    if (existingUser) {
       return res.status(400).json({ error: 'Email já está em uso' });
     }
 
@@ -44,18 +43,20 @@ router.post('/register', registerValidation, async (req, res) => {
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Inserir usuário
-    const result = await executeQuery(
-      'INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)',
-      [name, email, passwordHash]
-    );
-
-    // Buscar usuário criado
-    const newUsers = await executeQuery(
-      'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
-      [result.insertId]
-    );
-
-    const user = newUsers[0];
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        passwordHash
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
+    });
 
     // Gerar token JWT
     const token = jwt.sign(
@@ -71,7 +72,7 @@ router.post('/register', registerValidation, async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        createdAt: user.created_at
+        createdAt: user.createdAt
       },
       token
     });
@@ -92,19 +93,23 @@ router.post('/login', loginValidation, async (req, res) => {
     const { email, password } = req.body;
 
     // Buscar usuário
-    const users = await executeQuery(
-      'SELECT id, name, email, password_hash, role FROM users WHERE email = ?',
-      [email]
-    );
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        passwordHash: true,
+        role: true
+      }
+    });
 
-    if (users.length === 0) {
+    if (!user) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
-    const user = users[0];
-
     // Verificar senha
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }

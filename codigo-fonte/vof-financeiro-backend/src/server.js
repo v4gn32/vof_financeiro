@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { testConnection } from './config/database.js';
+import { testConnection, connectDatabase, disconnectDatabase } from './config/prisma.js';
 
 // Importar rotas
 import authRoutes from './routes/auth.js';
@@ -88,19 +88,36 @@ app.use('*', (req, res) => {
 // Inicializar servidor
 const startServer = async () => {
   try {
-    // Testar conexão com banco de dados
-    const dbConnected = await testConnection();
+    // Conectar ao banco de dados via Prisma
+    const dbConnected = await connectDatabase();
     
     if (!dbConnected) {
       console.error('❌ Não foi possível conectar ao banco de dados');
       process.exit(1);
     }
     
+    // Testar conexão
+    await testConnection();
+    
     app.listen(PORT, () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
     });
+    
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      console.log('\n🔄 Encerrando servidor...');
+      await disconnectDatabase();
+      process.exit(0);
+    });
+    
+    process.on('SIGTERM', async () => {
+      console.log('\n🔄 Encerrando servidor...');
+      await disconnectDatabase();
+      process.exit(0);
+    });
+    
   } catch (error) {
     console.error('❌ Erro ao inicializar servidor:', error);
     process.exit(1);
