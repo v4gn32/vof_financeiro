@@ -27,8 +27,8 @@ O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenv
 ## 🗄️ Estrutura do Banco de Dados
 
 **Nome do Banco:** `db_financeiro`
-**Usuário:** `vagneradmin`
-**Senha:** `Mudar2025`
+**Usuário:** `definir usuario`
+**Senha:** `senha`
 
 ### Tabelas Principais:
 - **users** - Usuários do sistema
@@ -138,7 +138,7 @@ vof_financeiro/
 ### 1. Configuração do Banco de Dados
 ```sql
 -- Criar usuário
-CREATE USER vagneradmin WITH PASSWORD 'Mudar2025';
+CREATE USER vagneradmin WITH PASSWORD 'Defina sua senha';
 
 -- Criar banco de dados
 CREATE DATABASE db_financeiro OWNER vagneradmin;
