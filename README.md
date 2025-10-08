@@ -1,10 +1,10 @@
 # VOF Financeiro - Sistema de Gestão Financeira
 
-## 📋 Resumo do Sistema
+## Resumo do Sistema
 
 O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenvolvido com arquitetura moderna, composto por um frontend em React/TypeScript e um backend em Node.js/Express com banco de dados MySQL.
 
-## 🏗️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
 ### Frontend (vof-financeiro-frontend)
 - **Framework:** React 18 com TypeScript
@@ -24,7 +24,7 @@ O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenv
 - **Segurança:** Helmet, CORS, bcryptjs
 - **Upload de Arquivos:** Multer
 
-## 🗄️ Estrutura do Banco de Dados
+## Estrutura do Banco de Dados
 
 **Nome do Banco:** `db_financeiro`
 **Usuário:** `definir usuario`
@@ -38,45 +38,45 @@ O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenv
 - **investments** - Investimentos
 - **notes** - Anotações financeiras
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
-### 💰 Gestão de Transações
+### Gestão de Transações
 - Cadastro de receitas e despesas
 - Categorização de transações
 - Filtros por data, categoria e tipo
 - Estatísticas mensais e anuais
 
-### 💳 Cartões de Crédito
+### Cartões de Crédito
 - Gerenciamento de múltiplos cartões
 - Controle de faturas mensais
 - Acompanhamento de limites
 - Histórico de gastos por cartão
 
-### 📈 Investimentos
+### Investimentos
 - Registro de investimentos
 - Acompanhamento de rentabilidade
 - Categorização por tipo de investimento
 - Relatórios de performance
 
-### 📝 Anotações
+### Anotações
 - Sistema de notas organizadas por categoria
 - Busca por conteúdo
 - Marcação de favoritos
 - Filtros avançados
 
-### 📊 Dashboard
+### Dashboard
 - Visão geral das finanças
 - Gráficos de receitas vs despesas
 - Resumo de investimentos
 - Indicadores financeiros
 
-### 👤 Gestão de Usuários
+### Gestão de Usuários
 - Sistema de autenticação seguro
 - Perfis de usuário personalizáveis
 - Controle de acesso por roles
 - Área administrativa
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 ### Frontend
 ```json
@@ -105,7 +105,7 @@ O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenv
 }
 ```
 
-## 📁 Estrutura de Diretórios
+## Estrutura de Diretórios
 
 ```
 vof_financeiro/
@@ -128,7 +128,7 @@ vof_financeiro/
 └── README.md
 ```
 
-## ⚙️ Configuração e Instalação
+## Configuração e Instalação
 
 ### Pré-requisitos
 - Node.js (v16 ou superior)
@@ -161,7 +161,7 @@ npm install
 npm run dev
 ```
 
-## 🔐 Segurança
+## Segurança
 
 - **Autenticação JWT** com tokens seguros
 - **Criptografia de senhas** com bcryptjs
@@ -170,7 +170,7 @@ npm run dev
 - **Headers de segurança** com Helmet
 - **Controle de acesso** baseado em roles
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Autenticação
 - `POST /api/auth/register` - Registro de usuário
@@ -199,9 +199,9 @@ npm run dev
 - `POST /api/notes` - Criar nota
 - `GET /api/notes/categories` - Listar categorias
 
-## 🎯 Status do Projeto
+## Status do Projeto
 
-✅ **Concluído:**
+**Concluído:**
 - Estrutura completa do frontend React/TypeScript
 - Backend Node.js/Express totalmente funcional
 - Configuração do banco de dados MySQL
@@ -209,13 +209,13 @@ npm run dev
 - APIs RESTful para todas as funcionalidades
 - Remoção de dados mockados
 
-🔄 **Próximos Passos:**
+**Próximos Passos:**
 - Integração frontend-backend
 - Testes automatizados
 - Deploy em produção
 - Documentação da API (Swagger)
 
-## 👥 Contribuição
+## Contribuição
 
 Para contribuir com o projeto:
 1. Faça um fork do repositório
@@ -224,10 +224,10 @@ Para contribuir com o projeto:
 4. Push para a branch
 5. Abra um Pull Request
 
-## 📄 Licença
+## Licença
 
 Este projeto está sob licença MIT. Veja o arquivo LICENSE para mais detalhes.
 
 ---
 
-**Desenvolvido com ❤️ para gestão financeira eficiente**
+**Desenvolvido com a necessidade e vontade para gestão financeira eficiente**
