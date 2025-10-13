@@ -32,7 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   return (
     <div className="bg-white h-full w-64 shadow-lg flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-800">FinanceFlow</h1>
+        <h1 className="text-xl font-bold text-gray-800">VOF-Financeiro</h1>
         <p className="text-sm text-gray-600 mt-1">Controle Financeiro</p>
       </div>
 
@@ -59,9 +59,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center mb-4">
           <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
-            <span className="text-green-700 font-semibold">
-              {user?.name?.charAt(0).toUpperCase()}
-            </span>
+            {user?.avatar ? (
+              <img 
+                src={user.avatar} 
+                alt="Perfil" 
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-green-700 font-semibold">
+                {user?.name?.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           <div>
             <p className="text-sm font-medium text-gray-800">{user?.name}</p>

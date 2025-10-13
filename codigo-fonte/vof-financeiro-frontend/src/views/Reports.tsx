@@ -1,16 +1,109 @@
 import React, { useState } from 'react';
-import { Download, Filter, Calendar, BarChart3 } from 'lucide-react';
+import { Download, Filter, Calendar, BarChart3, FileText } from 'lucide-react';
 import { useFinancial } from '../context/FinancialContext';
+import { generatePDFReport, generateExcelReport, downloadPDF, downloadExcel } from '../utils/reportGenerator';
+import { showNotification } from '../utils/notifications';
 
 const Reports: React.FC = () => {
-  const { transactions, dashboardStats } = useFinancial();
+  const { transactions, creditCardTransactions, investments, dashboardStats } = useFinancial();
   const [dateRange, setDateRange] = useState('current-month');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(amount);
+  };
+
+  const getFilteredData = () => {
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date = now;
+
+    switch (dateRange) {
+      case 'current-month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'last-month':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+        break;
+      case 'current-year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    const filteredTransactions = transactions.filter(t => {
+      const date = new Date(t.date);
+      const inDateRange = date >= startDate && date <= endDate;
+      const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
+      const matchesType = selectedType === 'all' || t.type === selectedType;
+      return inDateRange && matchesCategory && matchesType;
+    });
+
+    const filteredCreditCardTransactions = creditCardTransactions.filter(t => {
+      const date = new Date(t.date);
+      const inDateRange = date >= startDate && date <= endDate;
+      const matchesCategory = selectedCategory === 'all' || t.category === selectedCategory;
+      return inDateRange && matchesCategory;
+    });
+
+    const filteredInvestments = investments.filter(i => {
+      const date = new Date(i.date);
+      return date >= startDate && date <= endDate;
+    });
+
+    return {
+      transactions: filteredTransactions,
+      creditCardTransactions: filteredCreditCardTransactions,
+      investments: filteredInvestments,
+      period: `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`,
+    };
+  };
+
+  const handleGeneratePDF = async () => {
+    setIsGenerating(true);
+    try {
+      const data = getFilteredData();
+      const doc = generatePDFReport(
+        data.transactions,
+        data.creditCardTransactions,
+        data.investments,
+        data.period
+      );
+      downloadPDF(doc, `relatorio-financeiro-${dateRange}`);
+      showNotification('success', 'Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      showNotification('error', 'Erro ao gerar relatório PDF');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateExcel = async () => {
+    setIsGenerating(true);
+    try {
+      const data = getFilteredData();
+      const workbook = generateExcelReport(
+        data.transactions,
+        data.creditCardTransactions,
+        data.investments,
+        data.period
+      );
+      downloadExcel(workbook, `relatorio-financeiro-${dateRange}`);
+      showNotification('success', 'Relatório Excel gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar Excel:', error);
+      showNotification('error', 'Erro ao gerar relatório Excel');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const monthlyData = [
@@ -30,13 +123,29 @@ const Reports: React.FC = () => {
           <p className="text-gray-600">Análises detalhadas das suas finanças</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            PDF
+          <button 
+            onClick={handleGeneratePDF}
+            disabled={isGenerating}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
+            Gerar PDF
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Excel
+          <button 
+            onClick={handleGenerateExcel}
+            disabled={isGenerating}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            {isGenerating ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Gerar Excel
           </button>
         </div>
       </div>
@@ -143,13 +252,19 @@ const Reports: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Categoria</label>
-              <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
+              <select 
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              >
                 <option value="all">Todas as Categorias</option>
                 <option value="moradia">Moradia</option>
                 <option value="alimentacao">Alimentação</option>
                 <option value="transporte">Transporte</option>
                 <option value="saude">Saúde</option>
                 <option value="lazer">Lazer</option>
+                <option value="educacao">Educação</option>
+                <option value="compras">Compras</option>
               </select>
             </div>
 
@@ -157,19 +272,67 @@ const Reports: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
               <div className="space-y-2">
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-green-600" defaultChecked />
+                  <input 
+                    type="radio" 
+                    name="type" 
+                    value="all"
+                    checked={selectedType === 'all'}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="text-green-600" 
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Todos</span>
+                </label>
+                <label className="flex items-center">
+                  <input 
+                    type="radio" 
+                    name="type" 
+                    value="income"
+                    checked={selectedType === 'income'}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="text-green-600" 
+                  />
                   <span className="ml-2 text-sm text-gray-700">Receitas</span>
                 </label>
                 <label className="flex items-center">
-                  <input type="checkbox" className="rounded text-red-600" defaultChecked />
+                  <input 
+                    type="radio" 
+                    name="type" 
+                    value="expense"
+                    checked={selectedType === 'expense'}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="text-red-600" 
+                  />
                   <span className="ml-2 text-sm text-gray-700">Despesas</span>
                 </label>
               </div>
             </div>
 
-            <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
-              Aplicar Filtros
-            </button>
+            <div className="pt-4 space-y-3">
+              <button 
+                onClick={handleGeneratePDF}
+                disabled={isGenerating}
+                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FileText className="w-4 h-4" />
+                )}
+                Gerar Relatório PDF
+              </button>
+              <button 
+                onClick={handleGenerateExcel}
+                disabled={isGenerating}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                Gerar Relatório Excel
+              </button>
+            </div>
           </div>
         </div>
       </div>

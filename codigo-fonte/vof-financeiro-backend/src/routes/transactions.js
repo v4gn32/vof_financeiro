@@ -10,7 +10,7 @@ router.use(authenticateToken);
 
 // Validações
 const transactionValidation = [
-  body('type').isIn(['income', 'expense']).withMessage('Tipo deve ser income ou expense'),
+  body('type').isIn(['INCOME', 'EXPENSE']).withMessage('Tipo deve ser INCOME ou EXPENSE'),
   body('amount').isFloat({ min: 0.01 }).withMessage('Valor deve ser maior que 0'),
   body('category').trim().isLength({ min: 1 }).withMessage('Categoria é obrigatória'),
   body('description').optional().trim(),
@@ -22,7 +22,7 @@ const transactionValidation = [
 router.get('/', [
   query('page').optional().isInt({ min: 1 }).withMessage('Página deve ser um número positivo'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limite deve ser entre 1 e 100'),
-  query('type').optional().isIn(['income', 'expense']).withMessage('Tipo deve ser income ou expense'),
+  query('type').optional().isIn(['INCOME', 'EXPENSE']).withMessage('Tipo deve ser INCOME ou EXPENSE'),
   query('category').optional().trim(),
   query('startDate').optional().isISO8601().withMessage('Data inicial inválida'),
   query('endDate').optional().isISO8601().withMessage('Data final inválida')

@@ -104,61 +104,85 @@ router.put('/profile', updateUserValidation, async (req, res) => {
 router.get('/dashboard', async (req, res) => {
   try {
     const userId = req.user.id;
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
 
-    // Estatísticas de transações
-    const transactionStats = await executeQuery(
-      `SELECT 
-         type,
-         SUM(amount) as total,
-         COUNT(*) as count
-       FROM transactions 
-       WHERE user_id = ? AND MONTH(date) = ? AND YEAR(date) = ?
-       GROUP BY type`,
-      [userId, currentMonth, currentYear]
-    );
+    // Estatísticas de transações do mês atual
+    const [incomeStats, expenseStats] = await Promise.all([
+      prisma.transaction.aggregate({
+        where: {
+          userId,
+          type: 'INCOME',
+          date: {
+            gte: new Date(currentYear, currentMonth - 1, 1),
+            lt: new Date(currentYear, currentMonth, 1)
+          }
+        },
+        _sum: { amount: true },
+        _count: true
+      }),
+      prisma.transaction.aggregate({
+        where: {
+          userId,
+          type: 'EXPENSE',
+          date: {
+            gte: new Date(currentYear, currentMonth - 1, 1),
+            lt: new Date(currentYear, currentMonth, 1)
+          }
+        },
+        _sum: { amount: true },
+        _count: true
+      })
+    ]);
 
     // Total de investimentos
-    const investmentStats = await executeQuery(
-      `SELECT 
-         SUM(CASE WHEN transaction_type = 'deposit' THEN amount ELSE -amount END) as total_investments
-       FROM investments 
-       WHERE user_id = ?`,
-      [userId]
-    );
+    const [deposits, withdrawals] = await Promise.all([
+      prisma.investment.aggregate({
+        where: {
+          userId,
+          transactionType: 'DEPOSIT'
+        },
+        _sum: { amount: true }
+      }),
+      prisma.investment.aggregate({
+        where: {
+          userId,
+          transactionType: 'WITHDRAWAL'
+        },
+        _sum: { amount: true }
+      })
+    ]);
 
     // Número de cartões ativos
-    const creditCardStats = await executeQuery(
-      `SELECT COUNT(*) as active_cards
-       FROM credit_cards 
-       WHERE user_id = ? AND is_active = true`,
-      [userId]
-    );
+    const activeCards = await prisma.creditCard.count({
+      where: {
+        userId,
+        isActive: true
+      }
+    });
 
     // Número de anotações
-    const noteStats = await executeQuery(
-      `SELECT COUNT(*) as total_notes
-       FROM notes 
-       WHERE user_id = ?`,
-      [userId]
-    );
+    const totalNotes = await prisma.note.count({
+      where: {
+        userId
+      }
+    });
 
     // Organizar dados
-    const income = transactionStats.find(t => t.type === 'income')?.total || 0;
-    const expenses = transactionStats.find(t => t.type === 'expense')?.total || 0;
-    const totalInvestments = investmentStats[0]?.total_investments || 0;
-    const activeCards = creditCardStats[0]?.active_cards || 0;
-    const totalNotes = noteStats[0]?.total_notes || 0;
+    const monthlyIncome = Number(incomeStats._sum.amount || 0);
+    const monthlyExpenses = Number(expenseStats._sum.amount || 0);
+    const totalInvestments = Number(deposits._sum.amount || 0) - Number(withdrawals._sum.amount || 0);
+    const monthlyBalance = monthlyIncome - monthlyExpenses;
 
     res.json({
-      monthlyIncome: income,
-      monthlyExpenses: expenses,
-      monthlyBalance: income - expenses,
+      monthlyIncome,
+      monthlyExpenses,
+      monthlyBalance,
       totalInvestments,
       activeCards,
       totalNotes,
-      totalBalance: income - expenses + totalInvestments
+      totalBalance: monthlyBalance + totalInvestments
     });
   } catch (error) {
     console.error('Erro ao buscar dashboard:', error);

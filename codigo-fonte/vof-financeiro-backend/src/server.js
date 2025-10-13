@@ -8,6 +8,7 @@ import { testConnection, connectDatabase, disconnectDatabase } from './config/pr
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import creditCardRoutes from './routes/creditCards.js';
+import creditCardTransactionRoutes from './routes/creditCardTransactions.js';
 import investmentRoutes from './routes/investments.js';
 import noteRoutes from './routes/notes.js';
 import userRoutes from './routes/users.js';
@@ -50,6 +51,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/credit-cards', creditCardRoutes);
+app.use('/api/credit-card-transactions', creditCardTransactionRoutes);
 app.use('/api/investments', investmentRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/users', userRoutes);

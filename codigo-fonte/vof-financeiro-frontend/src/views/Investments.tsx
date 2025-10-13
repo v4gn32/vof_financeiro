@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Plus, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { useFinancial } from '../context/FinancialContext';
+import InvestmentForm from '../components/Investments/InvestmentForm';
 
 const Investments: React.FC = () => {
-  const { investments, dashboardStats } = useFinancial();
+  const { investments, dashboardStats, addInvestment, updateInvestment, deleteInvestment } = useFinancial();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -23,7 +26,10 @@ const Investments: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Investimentos</h2>
           <p className="text-gray-600">Acompanhe seus aportes e retiradas</p>
         </div>
-        <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+        <button 
+          onClick={() => setIsFormOpen(true)}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+        >
           <Plus className="w-5 h-5" />
           Novo Aporte
         </button>
@@ -105,6 +111,24 @@ const Investments: React.FC = () => {
           ))}
         </div>
       </div>
+
+      <InvestmentForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingInvestment(null);
+        }}
+        onSubmit={(investmentData) => {
+          if (editingInvestment) {
+            updateInvestment(editingInvestment.id, investmentData);
+            setEditingInvestment(null);
+          } else {
+            addInvestment(investmentData);
+          }
+          setIsFormOpen(false);
+        }}
+        investment={editingInvestment}
+      />
     </div>
   );
 };

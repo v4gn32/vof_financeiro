@@ -85,9 +85,31 @@ model CreditCard {
   // Relacionamentos
   user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   invoices CreditCardInvoice[]
+  transactions CreditCardTransaction[]
 
   @@index([userId, isActive])
   @@map("credit_cards")
+}
+
+// Modelo de transações de cartão de crédito
+model CreditCardTransaction {
+  id           String      @id @default(uuid()) @db.Uuid
+  cardId       String      @map("card_id") @db.Uuid
+  description  String      @db.VarChar(255)
+  amount       Decimal     @db.Decimal(15, 2)
+  category     String      @db.VarChar(100)
+  date         DateTime    @db.Date
+  installments Int         @default(1)
+  notes        String?     @db.Text
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  creditCard CreditCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, date])
+  @@index([category])
+  @@map("credit_card_transactions")
 }
 
 // Modelo de faturas do cartão de crédito

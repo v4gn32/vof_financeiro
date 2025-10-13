@@ -43,6 +43,19 @@ export interface CreditCardInvoice {
   createdAt: Date;
 }
 
+export interface CreditCardTransaction {
+  id: string;
+  cardId: string;
+  invoiceId?: string;
+  amount: number;
+  description: string;
+  category: string;
+  date: Date;
+  installments?: number;
+  currentInstallment?: number;
+  createdAt: Date;
+}
+
 export interface Investment {
   id: string;
   userId: string;
@@ -51,6 +64,9 @@ export interface Investment {
   amount: number;
   date: Date;
   transactionType: 'deposit' | 'withdrawal';
+  currentValue?: number;
+  profitLoss?: number;
+  profitLossPercentage?: number;
   notes?: string;
   createdAt: Date;
 }
@@ -72,4 +88,22 @@ export interface DashboardStats {
   monthlyBalance: number;
   totalInvestments: number;
   creditCardDebt: number;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'invoice_due' | 'goal_achieved' | 'expense_limit' | 'investment_update';
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
+export interface ReportFilter {
+  startDate: Date;
+  endDate: Date;
+  category?: string;
+  type?: 'income' | 'expense' | 'all';
+  paymentMethod?: string;
 }

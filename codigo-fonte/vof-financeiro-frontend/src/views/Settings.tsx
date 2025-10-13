@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { User, Bell, Shield, Palette, Database } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import AppearanceSettings from '../components/Settings/AppearanceSettings';
+import ProfilePhotoUpload from '../components/Settings/ProfilePhotoUpload';
+import { showNotification } from '../utils/notifications';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
-  
-  // Estado local para os campos do formulário
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: ''
+    phone: '',
   });
 
   const tabs = [
@@ -20,6 +22,12 @@ const Settings: React.FC = () => {
     { id: 'appearance', icon: Palette, label: 'Aparência' },
     { id: 'data', icon: Database, label: 'Dados' },
   ];
+
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aqui você implementaria a atualização do perfil
+    showNotification('success', 'Perfil atualizado com sucesso!');
+  };
 
   return (
     <div className="p-6">
@@ -56,49 +64,67 @@ const Settings: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                    <span className="text-green-700 text-xl font-semibold">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
+                    {user?.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt="Perfil" 
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-green-700 text-xl font-semibold">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <button 
+                    onClick={() => setIsPhotoUploadOpen(true)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     Alterar Foto
                   </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
-                  <input
-                    type="text"
-                    value={profileData.name}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
+                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
-                  <input
-                    type="tel"
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(11) 99999-9999"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
+                    <input
+                      type="tel"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="(11) 99999-9999"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
 
-                <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                  Salvar Alterações
-                </button>
+                  <button 
+                    type="submit"
+                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Salvar Alterações
+                  </button>
+                </form>
               </div>
             </div>
           )}
@@ -144,6 +170,13 @@ const Settings: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'appearance' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-6">Personalização da Aparência</h3>
+              <AppearanceSettings />
+            </div>
+          )}
+
           {activeTab === 'security' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Segurança</h3>
@@ -172,48 +205,16 @@ const Settings: React.FC = () => {
                     </button>
                   </div>
                 </div>
-
-                <div className="border-t pt-6">
-                  <h4 className="font-medium text-gray-800 mb-3">Autenticação em Duas Etapas</h4>
-                  <p className="text-gray-600 text-sm mb-3">Adicione uma camada extra de segurança à sua conta</p>
-                  <button className="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                    Configurar 2FA
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'data' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Gerenciamento de Dados</h3>
-              
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-medium text-gray-800 mb-3">Exportar Dados</h4>
-                  <p className="text-gray-600 text-sm mb-3">Baixe todos os seus dados financeiros</p>
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Exportar Dados
-                  </button>
-                </div>
-
-                <div className="border-t pt-6">
-                  <h4 className="font-medium text-red-600 mb-3">Zona de Perigo</h4>
-                  <p className="text-gray-600 text-sm mb-3">Estas ações são irreversíveis</p>
-                  <div className="space-y-3">
-                    <button className="border border-red-300 text-red-600 px-6 py-2 rounded-lg hover:bg-red-50 transition-colors">
-                      Limpar Todos os Dados
-                    </button>
-                    <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                      Excluir Conta
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      <ProfilePhotoUpload
+        isOpen={isPhotoUploadOpen}
+        onClose={() => setIsPhotoUploadOpen(false)}
+      />
     </div>
   );
 };

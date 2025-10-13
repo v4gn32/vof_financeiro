@@ -1,9 +1,12 @@
 import React from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Search, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useFinancial } from '../../context/FinancialContext';
+import NotificationCenter from '../Notifications/NotificationCenter';
 
 const Header: React.FC = () => {
   const { user } = useAuth();
+  const { notifications, markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } = useFinancial();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -32,10 +35,24 @@ const Header: React.FC = () => {
             />
           </div>
           
-          <button className="relative p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          <NotificationCenter
+            notifications={notifications}
+            onMarkAsRead={markNotificationAsRead}
+            onMarkAllAsRead={markAllNotificationsAsRead}
+            onDeleteNotification={deleteNotification}
+          />
+          
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-green-100 flex items-center justify-center">
+            {user?.avatar ? (
+              <img 
+                src={user.avatar} 
+                alt="Perfil" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <User className="w-4 h-4 text-green-600" />
+            )}
+          </div>
         </div>
       </div>
     </header>

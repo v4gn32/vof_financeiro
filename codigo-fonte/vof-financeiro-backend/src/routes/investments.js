@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import prisma from '../config/prisma.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { executeQuery } from '../config/database.js';
 
 const router = express.Router();
 
@@ -23,30 +24,35 @@ router.get('/', async (req, res) => {
   try {
     const { type, startDate, endDate } = req.query;
     
-    let whereConditions = ['user_id = ?'];
-    let queryParams = [req.user.id];
+    let whereConditions = {
+      userId: req.user.id
+    };
 
     if (type) {
-      whereConditions.push('type = ?');
-      queryParams.push(type);
+      whereConditions.type = type;
     }
 
     if (startDate) {
-      whereConditions.push('date >= ?');
-      queryParams.push(startDate);
+      whereConditions.date = {
+        ...whereConditions.date,
+        gte: new Date(startDate)
+      };
     }
 
     if (endDate) {
-      whereConditions.push('date <= ?');
-      queryParams.push(endDate);
+      whereConditions.date = {
+        ...whereConditions.date,
+        lte: new Date(endDate)
+      };
     }
 
-    const whereClause = whereConditions.join(' AND ');
-
-    const investments = await executeQuery(
-      `SELECT * FROM investments WHERE ${whereClause} ORDER BY date DESC, created_at DESC`,
-      queryParams
-    );
+    const investments = await prisma.investment.findMany({
+      where: whereConditions,
+      orderBy: [
+        { date: 'desc' },
+        { createdAt: 'desc' }
+      ]
+    });
 
     res.json(investments);
   } catch (error) {
@@ -60,16 +66,18 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const investments = await executeQuery(
-      'SELECT * FROM investments WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const investment = await prisma.investment.findFirst({
+      where: {
+        id,
+        userId: req.user.id
+      }
+    });
 
-    if (investments.length === 0) {
+    if (!investment) {
       return res.status(404).json({ error: 'Investimento não encontrado' });
     }
 
-    res.json(investments[0]);
+    res.json(investment);
   } catch (error) {
     console.error('Erro ao buscar investimento:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -93,21 +101,21 @@ router.post('/', investmentValidation, async (req, res) => {
       notes
     } = req.body;
 
-    const result = await executeQuery(
-      `INSERT INTO investments (user_id, type, description, amount, date, transaction_type, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, type, description, amount, date, transactionType, notes]
-    );
-
-    // Buscar investimento criado
-    const newInvestments = await executeQuery(
-      'SELECT * FROM investments WHERE id = ?',
-      [result.insertId]
-    );
+    const investment = await prisma.investment.create({
+      data: {
+        userId: req.user.id,
+        type,
+        description,
+        amount,
+        date: new Date(date),
+        transactionType: transactionType.toUpperCase(),
+        notes
+      }
+    });
 
     res.status(201).json({
       message: 'Investimento criado com sucesso',
-      investment: newInvestments[0]
+      investment
     });
   } catch (error) {
     console.error('Erro ao criar investimento:', error);

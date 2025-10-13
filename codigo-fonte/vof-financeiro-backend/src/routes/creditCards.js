@@ -21,10 +21,14 @@ const creditCardValidation = [
 // Listar cartões do usuário
 router.get('/', async (req, res) => {
   try {
-    const creditCards = await executeQuery(
-      'SELECT * FROM credit_cards WHERE user_id = ? ORDER BY created_at DESC',
-      [req.user.id]
-    );
+    const creditCards = await prisma.creditCard.findMany({
+      where: {
+        userId: req.user.id
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     res.json(creditCards);
   } catch (error) {
@@ -38,16 +42,18 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const creditCards = await executeQuery(
-      'SELECT * FROM credit_cards WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const creditCard = await prisma.creditCard.findFirst({
+      where: {
+        id: parseInt(id),
+        userId: req.user.id
+      }
+    });
 
-    if (creditCards.length === 0) {
+    if (!creditCard) {
       return res.status(404).json({ error: 'Cartão não encontrado' });
     }
 
-    res.json(creditCards[0]);
+    res.json(creditCard);
   } catch (error) {
     console.error('Erro ao buscar cartão:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -71,21 +77,21 @@ router.post('/', creditCardValidation, async (req, res) => {
       isActive = true
     } = req.body;
 
-    const result = await executeQuery(
-      `INSERT INTO credit_cards (user_id, name, last_four_digits, closing_day, due_day, card_limit, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [req.user.id, name, lastFourDigits, closingDay, dueDay, limit, isActive]
-    );
-
-    // Buscar cartão criado
-    const newCreditCards = await executeQuery(
-      'SELECT * FROM credit_cards WHERE id = ?',
-      [result.insertId]
-    );
+    const newCreditCard = await prisma.creditCard.create({
+      data: {
+        userId: req.user.id,
+        name,
+        lastFourDigits,
+        closingDay,
+        dueDay,
+        cardLimit: limit,
+        isActive
+      }
+    });
 
     res.status(201).json({
       message: 'Cartão criado com sucesso',
-      creditCard: newCreditCards[0]
+      creditCard: newCreditCard
     });
   } catch (error) {
     console.error('Erro ao criar cartão:', error);
@@ -112,33 +118,35 @@ router.put('/:id', creditCardValidation, async (req, res) => {
     } = req.body;
 
     // Verificar se o cartão existe e pertence ao usuário
-    const existingCards = await executeQuery(
-      'SELECT id FROM credit_cards WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const existingCard = await prisma.creditCard.findFirst({
+      where: {
+        id: parseInt(id),
+        userId: req.user.id
+      }
+    });
 
-    if (existingCards.length === 0) {
+    if (!existingCard) {
       return res.status(404).json({ error: 'Cartão não encontrado' });
     }
 
     // Atualizar cartão
-    await executeQuery(
-      `UPDATE credit_cards 
-       SET name = ?, last_four_digits = ?, closing_day = ?, due_day = ?, 
-           card_limit = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE id = ?`,
-      [name, lastFourDigits, closingDay, dueDay, limit, isActive, id]
-    );
-
-    // Buscar cartão atualizado
-    const updatedCards = await executeQuery(
-      'SELECT * FROM credit_cards WHERE id = ?',
-      [id]
-    );
+    const updatedCreditCard = await prisma.creditCard.update({
+      where: {
+        id: parseInt(id)
+      },
+      data: {
+        name,
+        lastFourDigits,
+        closingDay,
+        dueDay,
+        cardLimit: limit,
+        isActive
+      }
+    });
 
     res.json({
       message: 'Cartão atualizado com sucesso',
-      creditCard: updatedCards[0]
+      creditCard: updatedCreditCard
     });
   } catch (error) {
     console.error('Erro ao atualizar cartão:', error);
@@ -152,17 +160,23 @@ router.delete('/:id', async (req, res) => {
     const { id } = req.params;
 
     // Verificar se o cartão existe e pertence ao usuário
-    const existingCards = await executeQuery(
-      'SELECT id FROM credit_cards WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const existingCard = await prisma.creditCard.findFirst({
+      where: {
+        id: parseInt(id),
+        userId: req.user.id
+      }
+    });
 
-    if (existingCards.length === 0) {
+    if (!existingCard) {
       return res.status(404).json({ error: 'Cartão não encontrado' });
     }
 
     // Deletar cartão (e suas faturas em cascata)
-    await executeQuery('DELETE FROM credit_cards WHERE id = ?', [id]);
+    await prisma.creditCard.delete({
+      where: {
+        id: parseInt(id)
+      }
+    });
 
     res.json({ message: 'Cartão deletado com sucesso' });
   } catch (error) {
@@ -177,20 +191,27 @@ router.get('/:id/invoices', async (req, res) => {
     const { id } = req.params;
 
     // Verificar se o cartão pertence ao usuário
-    const cards = await executeQuery(
-      'SELECT id FROM credit_cards WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const card = await prisma.creditCard.findFirst({
+      where: {
+        id: parseInt(id),
+        userId: req.user.id
+      }
+    });
 
-    if (cards.length === 0) {
+    if (!card) {
       return res.status(404).json({ error: 'Cartão não encontrado' });
     }
 
     // Buscar faturas
-    const invoices = await executeQuery(
-      'SELECT * FROM credit_card_invoices WHERE card_id = ? ORDER BY year DESC, month DESC',
-      [id]
-    );
+    const invoices = await prisma.creditCardInvoice.findMany({
+      where: {
+        cardId: parseInt(id)
+      },
+      orderBy: [
+        { year: 'desc' },
+        { month: 'desc' }
+      ]
+    });
 
     res.json(invoices);
   } catch (error) {
@@ -217,49 +238,56 @@ router.post('/:id/invoices', [
     const { month, year, totalAmount, dueDate, status = 'pending' } = req.body;
 
     // Verificar se o cartão pertence ao usuário
-    const cards = await executeQuery(
-      'SELECT id FROM credit_cards WHERE id = ? AND user_id = ?',
-      [id, req.user.id]
-    );
+    const card = await prisma.creditCard.findFirst({
+      where: {
+        id: parseInt(id),
+        userId: req.user.id
+      }
+    });
 
-    if (cards.length === 0) {
+    if (!card) {
       return res.status(404).json({ error: 'Cartão não encontrado' });
     }
 
     // Verificar se já existe fatura para este mês/ano
-    const existingInvoices = await executeQuery(
-      'SELECT id FROM credit_card_invoices WHERE card_id = ? AND month = ? AND year = ?',
-      [id, month, year]
-    );
+    const existingInvoice = await prisma.creditCardInvoice.findFirst({
+      where: {
+        cardId: parseInt(id),
+        month,
+        year
+      }
+    });
 
-    let result;
-    if (existingInvoices.length > 0) {
+    let invoice;
+    if (existingInvoice) {
       // Atualizar fatura existente
-      await executeQuery(
-        `UPDATE credit_card_invoices 
-         SET total_amount = ?, due_date = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
-        [totalAmount, dueDate, status, existingInvoices[0].id]
-      );
-      result = { insertId: existingInvoices[0].id };
+      invoice = await prisma.creditCardInvoice.update({
+        where: {
+          id: existingInvoice.id
+        },
+        data: {
+          totalAmount,
+          dueDate: new Date(dueDate),
+          status
+        }
+      });
     } else {
       // Criar nova fatura
-      result = await executeQuery(
-        `INSERT INTO credit_card_invoices (card_id, month, year, total_amount, due_date, status)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, month, year, totalAmount, dueDate, status]
-      );
+      invoice = await prisma.creditCardInvoice.create({
+        data: {
+          cardId: parseInt(id),
+          month,
+          year,
+          totalAmount,
+          dueDate: new Date(dueDate),
+          status
+        }
+      });
     }
-
-    // Buscar fatura criada/atualizada
-    const invoices = await executeQuery(
-      'SELECT * FROM credit_card_invoices WHERE id = ?',
-      [result.insertId]
-    );
 
     res.status(201).json({
       message: 'Fatura salva com sucesso',
-      invoice: invoices[0]
+      invoice
     });
   } catch (error) {
     console.error('Erro ao salvar fatura:', error);

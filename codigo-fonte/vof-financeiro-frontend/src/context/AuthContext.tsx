@@ -6,6 +6,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateProfile: (updates: Partial<User>) => void;
   isLoading: boolean;
 }
 
@@ -28,125 +29,76 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user session and validate token
+    // Check for stored user session
     const storedUser = localStorage.getItem('financial_user');
-    const storedToken = localStorage.getItem('financial_token');
-    
-    if (storedUser && storedToken) {
-      // Validate token with backend
-      fetch('http://localhost:3001/api/auth/verify', {
-        headers: {
-          'Authorization': `Bearer ${storedToken}`,
-        },
-      })
-      .then(response => {
-        if (response.ok) {
-          setUser(JSON.parse(storedUser));
-        } else {
-          // Token invalid, clear storage
-          localStorage.removeItem('financial_user');
-          localStorage.removeItem('financial_token');
-        }
-      })
-      .catch(() => {
-        // Network error or invalid token, clear storage
-        localStorage.removeItem('financial_user');
-        localStorage.removeItem('financial_token');
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.user && data.token) {
-        const user: User = {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          createdAt: new Date(data.user.createdAt || Date.now()),
-        };
-        
-        setUser(user);
-        localStorage.setItem('financial_user', JSON.stringify(user));
-        localStorage.setItem('financial_token', data.token);
-        setIsLoading(false);
-        return true;
-      }
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock authentication
+    if (email && password.length >= 6) {
+      const mockUser: User = {
+        id: '1',
+        name: email.split('@')[0],
+        email,
+        role: email.includes('admin') ? 'admin' : 'user',
+        createdAt: new Date(),
+      };
       
+      setUser(mockUser);
+      localStorage.setItem('financial_user', JSON.stringify(mockUser));
       setIsLoading(false);
-      return false;
-    } catch (error) {
-      console.error('Erro no login:', error);
-      setIsLoading(false);
-      return false;
+      return true;
     }
+    
+    setIsLoading(false);
+    return false;
   };
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.user && data.token) {
-        const user: User = {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          createdAt: new Date(data.user.createdAt || Date.now()),
-        };
-        
-        setUser(user);
-        localStorage.setItem('financial_user', JSON.stringify(user));
-        localStorage.setItem('financial_token', data.token);
-        setIsLoading(false);
-        return true;
-      }
-      
-      setIsLoading(false);
-      return false;
-    } catch (error) {
-      console.error('Erro no registro:', error);
-      setIsLoading(false);
-      return false;
-    }
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mock registration
+    const mockUser: User = {
+      id: Date.now().toString(),
+      name,
+      email,
+      role: 'user',
+      createdAt: new Date(),
+    };
+    
+    setUser(mockUser);
+    localStorage.setItem('financial_user', JSON.stringify(mockUser));
+    setIsLoading(false);
+    return true;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('financial_user');
-    localStorage.removeItem('financial_token');
+  };
+
+  const updateProfile = (updates: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...updates };
+      setUser(updatedUser);
+      localStorage.setItem('financial_user', JSON.stringify(updatedUser));
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
