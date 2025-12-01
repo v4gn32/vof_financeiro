@@ -9,16 +9,15 @@ O **VOF-Financeiro** é um sistema web completo para gerenciamento de despesas e
 - **Controle de Cartão de Crédito** com indicadores e ações rápidas
 - **Controle de Investimentos** com alertas
 - **Relatórios** financeiros e de desempenho
-- **Gerenciamento de Usuários** com permissões
-- Integração com importação de planilhas Excel
-- Layout moderno e responsivo
+- **Integração** com importação de planilhas Excel
+- **Layout** moderno e responsivo
 
 ## Tecnologias Utilizadas
 
 - **Frontend**: React + TailwindCSS + Vite + TypeScript
 - **Backend**: Node.js + React + Express + Prisma
 - **Banco de Dados**: PostgreSQL
-- **Deploy**: Render
+- **Deploy**: Render, Vercel (Estudar o mais eficiente)
 
 ## Perfis de Acesso
 
