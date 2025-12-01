@@ -1,233 +1,82 @@
-# VOF Financeiro - Sistema de Gestão Financeira
+# TecSolutions – Sistema
 
-## Resumo do Sistema
-
-O **VOF Financeiro** é um sistema completo de gestão financeira pessoal desenvolvido com arquitetura moderna, composto por um frontend em React/TypeScript e um backend em Node.js/Express com banco de dados MySQL.
-
-## Arquitetura do Sistema
-
-### Frontend (vof-financeiro-frontend)
-- **Framework:** React 18 com TypeScript
-- **Build Tool:** Vite
-- **Estilização:** Tailwind CSS
-- **Ícones:** Lucide React
-- **Roteamento:** React Router DOM
-- **Gerenciamento de Estado:** Context API
-- **Autenticação:** Supabase (configurado)
-
-### Backend (vof-financeiro-backend)
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Banco de Dados:** PostgreSQL
-- **Autenticação:** JWT (JSON Web Tokens)
-- **Validação:** Express Validator
-- **Segurança:** Helmet, CORS, bcryptjs
-- **Upload de Arquivos:** Multer
-
-## Estrutura do Banco de Dados
-
-**Nome do Banco:** `db_financeiro`
-**Usuário:** `definir usuario`
-**Senha:** `senha`
-
-### Tabelas Principais:
-- **users** - Usuários do sistema
-- **transactions** - Transações financeiras (receitas/despesas)
-- **credit_cards** - Cartões de crédito
-- **credit_card_invoices** - Faturas dos cartões
-- **investments** - Investimentos
-- **notes** - Anotações financeiras
+O **TecSolutions** é um sistema web completo que une o site institucional da empresa a um sistema interno para gestão de propostas comerciais, cronograma de atendimentos e clientes. Ele foi desenvolvido para otimizar o fluxo comercial e operacional, garantindo organização e eficiência.
 
 ## Funcionalidades
 
-### Gestão de Transações
-- Cadastro de receitas e despesas
-- Categorização de transações
-- Filtros por data, categoria e tipo
-- Estatísticas mensais e anuais
-
-### Cartões de Crédito
-- Gerenciamento de múltiplos cartões
-- Controle de faturas mensais
-- Acompanhamento de limites
-- Histórico de gastos por cartão
-
-### Investimentos
-- Registro de investimentos
-- Acompanhamento de rentabilidade
-- Categorização por tipo de investimento
-- Relatórios de performance
-
-### Anotações
-- Sistema de notas organizadas por categoria
-- Busca por conteúdo
-- Marcação de favoritos
-- Filtros avançados
-
-### Dashboard
-- Visão geral das finanças
-- Gráficos de receitas vs despesas
-- Resumo de investimentos
-- Indicadores financeiros
-
-### Gestão de Usuários
-- Sistema de autenticação seguro
-- Perfis de usuário personalizáveis
-- Controle de acesso por roles
-- Área administrativa
+- **Site Institucional** com páginas de Início, Sobre, Serviços e Contato
+- **Acesso ao Sistema** com login seguro
+- **Dashboard** com indicadores e ações rápidas
+- **Gestão de Propostas**: criação, edição, status e histórico
+- **Cronograma de Atendimentos**: visualização em lista ou calendário, filtros, importação/exportação e controle de status
+- **Gestão de Clientes, Serviços e Produtos**
+- **Relatórios** financeiros e de desempenho
+- **Gerenciamento de Usuários** com permissões
+- Integração com importação de planilhas Excel
+- Layout moderno e responsivo
 
 ## Tecnologias Utilizadas
 
-### Frontend
-```json
-{
-  "react": "^18.2.0",
-  "typescript": "^5.0.2",
-  "vite": "^4.4.5",
-  "tailwindcss": "^3.3.0",
-  "react-router-dom": "^6.15.0",
-  "lucide-react": "^0.263.1",
-  "@supabase/supabase-js": "^2.33.1"
-}
-```
+- **Frontend**: React + TailwindCSS
+- **Backend**: Node.js + Express
+- **Banco de Dados**: PostgreSQL
+- **Deploy**: Render
 
-### Backend
-```json
-{
-  "express": "^4.18.2",
-  "pg": "^8.11.3",
-  "jsonwebtoken": "^9.0.2",
-  "bcryptjs": "^2.4.3",
-  "cors": "^2.8.5",
-  "helmet": "^7.0.0",
-  "express-validator": "^7.0.1",
-  "multer": "^1.4.5-lts.1"
-}
-```
+## Perfis de Acesso
 
-## Estrutura de Diretórios
+- **Administrador** – acesso total ao sistema, gerenciamento de usuários e configurações
+- **Usuário Comum** – acesso restrito às funções atribuídas pelo administrador
 
-```
-vof_financeiro/
-├── codigo-fonte/
-│   ├── vof-financeiro-frontend/
-│   │   ├── src/
-│   │   │   ├── components/     # Componentes reutilizáveis
-│   │   │   ├── context/        # Context API (estado global)
-│   │   │   ├── types/          # Definições TypeScript
-│   │   │   └── views/          # Páginas da aplicação
-│   │   ├── public/
-│   │   └── package.json
-│   └── vof-financeiro-backend/
-│       ├── src/
-│       │   ├── config/         # Configurações (DB, etc)
-│       │   ├── middleware/     # Middlewares (auth, etc)
-│       │   └── routes/         # Rotas da API
-│       ├── .env                # Variáveis de ambiente
-│       └── package.json
-└── README.md
-```
+## Estrutura do Projeto
 
-## Configuração e Instalação
+- `/frontend` → Interface do sistema e site institucional
+- `/backend` → API e regras de negócio
+- `/docs` → Documentação técnica e de requisitos
 
-### Pré-requisitos
-- Node.js (v16 ou superior)
-- PostgreSQL Server
-- npm ou yarn
+## Como rodar o projeto localmente
 
-### 1. Configuração do Banco de Dados
-```sql
--- Criar usuário
-CREATE USER vagneradmin WITH PASSWORD 'Defina sua senha';
+1. **Clone o repositório**:
 
--- Criar banco de dados
-CREATE DATABASE db_financeiro OWNER vagneradmin;
+   ```bash
+   git clone https://github.com/seu-usuario/tecsolutions.git
+   cd tecsolutions
+   ```
 
--- Conceder privilégios
-GRANT ALL PRIVILEGES ON DATABASE db_financeiro TO vagneradmin;
-```
+2. **Backend** (`/backend`)
 
-### 2. Backend
-```bash
-cd codigo-fonte/vof-financeiro-backend
-npm install
-npm run dev
-```
+   ```bash
+   cd backend
+   npm install
+   # configure o arquivo .env com suas credenciais
+   npm run dev
+   ```
 
-### 3. Frontend
-```bash
-cd codigo-fonte/vof-financeiro-frontend
-npm install
-npm run dev
-```
+3. **Frontend** (`/frontend`)
+   ```bash
+   cd ../frontend
+   npm install
+   # configure o arquivo .env com VITE_API_URL=http://localhost:3000
+   npm run dev
+   ```
 
-## Segurança
+> Acesse: `http://localhost:5173` (frontend) e `http://localhost:3000` (backend)
 
-- **Autenticação JWT** com tokens seguros
-- **Criptografia de senhas** com bcryptjs
-- **Validação de entrada** em todas as rotas
-- **Proteção CORS** configurada
-- **Headers de segurança** com Helmet
-- **Controle de acesso** baseado em roles
+<ol>
+<li><a href="documentos/01-Documentação de Contexto.md"> Documentação de Contexto</a></li>
+<li><a href="documentos/02-Especificação do Projeto.md"> Especificação do Projeto</a></li>
+<li><a href="documentos/03-Projeto de Interface.md"> Projeto de Interface</a></li>
+<li><a href="documentos/04-Testes de Software.md"> Testes de Software</a></li>
+<li><a href="documentos/05-Implantação.md"> Implantação</a></li>
+</ol>
 
-## API Endpoints
+## Contato
 
-### Autenticação
-- `POST /api/auth/register` - Registro de usuário
-- `POST /api/auth/login` - Login
-- `GET /api/auth/verify` - Verificar token
-- `POST /api/auth/logout` - Logout
+**Vagner de Oliveira Florencio**
 
-### Transações
-- `GET /api/transactions` - Listar transações
-- `POST /api/transactions` - Criar transação
-- `PUT /api/transactions/:id` - Atualizar transação
-- `DELETE /api/transactions/:id` - Excluir transação
+<a href="https://www.linkedin.com/in/vagner-florencio-85679860/" target="_blank">
+  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
+</a>
 
-### Cartões de Crédito
-- `GET /api/credit-cards` - Listar cartões
-- `POST /api/credit-cards` - Criar cartão
-- `GET /api/credit-cards/:id/invoices` - Listar faturas
-
-### Investimentos
-- `GET /api/investments` - Listar investimentos
-- `POST /api/investments` - Criar investimento
-- `GET /api/investments/stats` - Estatísticas
-
-### Anotações
-- `GET /api/notes` - Listar notas
-- `POST /api/notes` - Criar nota
-- `GET /api/notes/categories` - Listar categorias
-
-## Status do Projeto
-
-**Concluído:**
-- Estrutura completa do frontend React/TypeScript
-- Backend Node.js/Express totalmente funcional
-- Configuração do banco de dados MySQL
-- Sistema de autenticação JWT
-- APIs RESTful para todas as funcionalidades
-- Remoção de dados mockados
-
-**Próximos Passos:**
-- Integração frontend-backend
-- Testes automatizados
-- Deploy em produção
-- Documentação da API (Swagger)
-
-## Contribuição
-
-Para contribuir com o projeto:
-1. Faça um fork do repositório
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
-
-## Licença
-
-Este projeto está sob licença MIT. Veja o arquivo LICENSE para mais detalhes.
-
----
-
-**Desenvolvido com a necessidade e vontade para gestão financeira eficiente**
+<a href="https://www.instagram.com/v4gn32/" target="_blank">
+  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram">
+</a>
