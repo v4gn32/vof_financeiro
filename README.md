@@ -1,15 +1,13 @@
-# TecSolutions – Sistema
+# VOF - Financeiro
 
-O **TecSolutions** é um sistema web completo que une o site institucional da empresa a um sistema interno para gestão de propostas comerciais, cronograma de atendimentos e clientes. Ele foi desenvolvido para otimizar o fluxo comercial e operacional, garantindo organização e eficiência.
+O **VOF-Financeiro** é um sistema web completo para gerenciamento de despesas e receitas com controle moderno e eficaz de investimentos.
 
 ## Funcionalidades
 
-- **Site Institucional** com páginas de Início, Sobre, Serviços e Contato
 - **Acesso ao Sistema** com login seguro
 - **Dashboard** com indicadores e ações rápidas
-- **Gestão de Propostas**: criação, edição, status e histórico
-- **Cronograma de Atendimentos**: visualização em lista ou calendário, filtros, importação/exportação e controle de status
-- **Gestão de Clientes, Serviços e Produtos**
+- **Controle de Cartão de Crédito** com indicadores e ações rápidas
+- **Controle de Investimentos** com alertas
 - **Relatórios** financeiros e de desempenho
 - **Gerenciamento de Usuários** com permissões
 - Integração com importação de planilhas Excel
@@ -17,37 +15,33 @@ O **TecSolutions** é um sistema web completo que une o site institucional da em
 
 ## Tecnologias Utilizadas
 
-- **Frontend**: React + TailwindCSS
-- **Backend**: Node.js + Express
+- **Frontend**: React + TailwindCSS + Vite + TypeScript
+- **Backend**: Node.js + React + Express + Prisma
 - **Banco de Dados**: PostgreSQL
 - **Deploy**: Render
 
 ## Perfis de Acesso
 
-- **Administrador** – acesso total ao sistema, gerenciamento de usuários e configurações
-- **Usuário Comum** – acesso restrito às funções atribuídas pelo administrador
+- **Usuário Único** – acesso total ao sistema e configurações
 
 ## Estrutura do Projeto
 
-- `/frontend` → Interface do sistema e site institucional
+- `/frontend` → Interface do sistema
 - `/backend` → API e regras de negócio
 - `/docs` → Documentação técnica e de requisitos
 
-## Como rodar o projeto localmente
+## Como Rodar o Projeto Localmente
 
 1. **Clone o repositório**:
-
    ```bash
-   git clone https://github.com/seu-usuario/tecsolutions.git
-   cd tecsolutions
+   git clone https://github.com/seu-usuario/vof-financeiro.git
+   cd vof-financeiro
    ```
 
 2. **Backend** (`/backend`)
-
    ```bash
    cd backend
    npm install
-   # configure o arquivo .env com suas credenciais
    npm run dev
    ```
 
@@ -55,28 +49,22 @@ O **TecSolutions** é um sistema web completo que une o site institucional da em
    ```bash
    cd ../frontend
    npm install
-   # configure o arquivo .env com VITE_API_URL=http://localhost:3000
    npm run dev
    ```
 
 > Acesse: `http://localhost:5173` (frontend) e `http://localhost:3000` (backend)
 
-<ol>
-<li><a href="documentos/01-Documentação de Contexto.md"> Documentação de Contexto</a></li>
-<li><a href="documentos/02-Especificação do Projeto.md"> Especificação do Projeto</a></li>
-<li><a href="documentos/03-Projeto de Interface.md"> Projeto de Interface</a></li>
-<li><a href="documentos/04-Testes de Software.md"> Testes de Software</a></li>
-<li><a href="documentos/05-Implantação.md"> Implantação</a></li>
-</ol>
+## Documentação
+
+- [Documentação de Contexto](documentos/01-Documentação%20de%20Contexto.md)
+- [Especificação do Projeto](documentos/02-Especificação%20do%20Projeto.md)
+- [Projeto de Interface](documentos/03-Projeto%20de%20Interface.md)
+- [Testes de Software](documentos/04-Testes%20de%20Software.md)
+- [Implantação](documentos/05-Implantação.md)
 
 ## Contato
 
 **Vagner de Oliveira Florencio**
 
-<a href="https://www.linkedin.com/in/vagner-florencio-85679860/" target="_blank">
-  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn">
-</a>
-
-<a href="https://www.instagram.com/v4gn32/" target="_blank">
-  <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram">
-</a>
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/vagner-florencio-85679860/)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/v4gn32/)
